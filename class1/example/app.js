@@ -1,3 +1,5 @@
+'use strict';
+
 console.log("Class 1");
 
 const http = require("http");
@@ -13,11 +15,9 @@ app.use(express.static("./public"));
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
-
 const airports = ["EZE","PE","MIA","AER","AUX","RET","LUL","POP","FRE","NIG","CBA"];
 
 const getRandomAirport =(airs)=> airs[ Math.floor(Math.random()*airs.length)];
-
 
 const decorator=(t)=>{
 	return {
@@ -31,28 +31,29 @@ const decorator=(t)=>{
 			infant: 0,
 			taxes:{
 				tax: t.prices * (Math.random() * 15),
-				others: 0		
+				others: 0
 			}
 		}
 	}
 }
 
 const getCluster = (template)=>{
+
 	let stops=[];
 	let limit = Math.floor(Math.random()*5);
-	
+
 
 	let getPrice = (min, max)=> min + Math.floor( Math.random() * (max - min) );
 	let rem = (a,e)=> a.filter( z=> z!=e );
 
 
-	if(limit==0 || limit==1) 
+	if(limit==0 || limit==1)
 		return [Object.assign({}, template, {
 									prices: getPrice(template.prices[0], template.prices[1])
 								})
 				];
 
-	let airs=airports.filter((a)=> !(a==template.from || a==template.to) );	
+	let airs=airports.filter((a)=> !(a==template.from || a==template.to) );
 	let aux = null;
 
 	console.log("Generando cluster");
@@ -61,7 +62,7 @@ const getCluster = (template)=>{
 
 		let t =Object.assign({}, template);
 
-		if(x==0){	
+		if(x==0){
 			aux = getRandomAirport(airs);
 			airs = rem(airs, aux);
 			t.to = aux;
@@ -73,7 +74,7 @@ const getCluster = (template)=>{
 			airs = rem(airs, aux);
 			t.to = aux;
 		}
-		
+
 		t.prices =  getPrice(t.prices[0], t.prices[1]);
 		stops.push(t);
 	}
@@ -85,13 +86,11 @@ const getClusters = (template)=>{
 
 	for(let i=0; i<Math.random()*10; i++) {
 		clusters.push( getCluster(template).map( t=>decorator(t) ) );
-	}		
-		
-	
+	}
+
+
 	return clusters;
 }
-
-
 
 app.post("/vuelos", (req, res)=>{
 	console.log("***************************************");
@@ -103,6 +102,10 @@ app.post("/vuelos", (req, res)=>{
 	};
 
 	res.json(getClusters(clusterTemplate));
+});
+
+app.get("/airports", (req, res)=>{
+	res.json(airports);
 });
 
 myserver.listen(port);
